@@ -1,73 +1,52 @@
-import { useMemo } from 'react';
-import { STEPS } from '../data/steps';
-
-const CRITICAL_CHAIN = ['ordre', 'rpps', 'conventionnement', 'local', 'rc-pro'];
-
-function estimateWeeksRemaining(statuses) {
-  const remaining = STEPS.filter(s => statuses[s.id] !== 'done' && s.priority === 'critical');
-  if (remaining.length === 0) return 0;
-  // conservative: max of the remaining critical steps (parallel tracks)
-  return Math.max(...remaining.map(s => s.estimatedWeeks.max));
-}
-
-export default function Header({ total, done, inProgress, statuses }) {
-  const progress = Math.round((done / total) * 100);
-  const weeksLeft = useMemo(() => estimateWeeksRemaining(statuses), [statuses]);
-  const monthsLeft = Math.ceil(weeksLeft / 4);
-
+export default function Header({ search, onSearch, favoritesCount }) {
   return (
-    <header className="bg-white border-b border-slate-200 sticky top-0 z-20 shadow-sm">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 py-3 flex items-center justify-between gap-6">
-        {/* Logo */}
-        <div className="flex items-center gap-3 shrink-0">
-          <div className="w-9 h-9 bg-blue-600 rounded-xl flex items-center justify-center shadow-sm">
-            <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
-            </svg>
-          </div>
-          <div>
-            <h1 className="font-bold text-slate-900 text-base leading-tight">MedInstall</h1>
-            <p className="text-xs text-slate-400 leading-tight">Guide d'installation cabinet</p>
-          </div>
+    <header className="bg-white border-b border-slate-200 h-14 flex items-center px-4 gap-4 shrink-0 z-20 shadow-sm">
+      {/* Logo */}
+      <div className="flex items-center gap-2 shrink-0">
+        <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
+          <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5}
+              d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5}
+              d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+          </svg>
         </div>
-
-        {/* Progress area */}
-        <div className="flex items-center gap-5 flex-1 max-w-xl">
-          <div className="flex-1">
-            <div className="flex justify-between items-center mb-1">
-              <span className="text-xs font-medium text-slate-600">
-                <span className="font-bold text-slate-900">{done}</span>/{total} étapes terminées
-                {inProgress > 0 && (
-                  <span className="ml-2 text-amber-600 font-medium">· {inProgress} en cours</span>
-                )}
-              </span>
-              <span className="text-xs font-semibold text-blue-600">{progress}%</span>
-            </div>
-            <div className="w-full bg-slate-100 rounded-full h-2">
-              <div
-                className="bg-blue-600 h-2 rounded-full transition-all duration-700"
-                style={{ width: `${progress}%` }}
-              />
-            </div>
-          </div>
-
-          {/* ETA badge */}
-          <div className="shrink-0 text-right">
-            {done === total ? (
-              <span className="inline-flex items-center gap-1 bg-emerald-50 text-emerald-700 text-xs font-semibold px-3 py-1.5 rounded-full border border-emerald-200">
-                🎉 Installation complète !
-              </span>
-            ) : (
-              <div>
-                <div className="text-xs text-slate-400">Estimation restante</div>
-                <div className="font-bold text-slate-800 text-sm">
-                  {monthsLeft <= 1 ? '< 1 mois' : `~${monthsLeft} mois`}
-                </div>
-              </div>
-            )}
-          </div>
-        </div>
+        <span className="font-bold text-slate-900 text-sm hidden sm:block">MedMap</span>
       </div>
+
+      {/* Search */}
+      <div className="flex-1 max-w-md relative">
+        <svg
+          className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400"
+          fill="none" stroke="currentColor" viewBox="0 0 24 24"
+        >
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
+            d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+        </svg>
+        <input
+          type="text"
+          value={search}
+          onChange={e => onSearch(e.target.value)}
+          placeholder="Nom, spécialité, adresse…"
+          className="w-full pl-9 pr-4 py-2 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+        />
+        {search && (
+          <button
+            onClick={() => onSearch('')}
+            className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
+          >
+            ×
+          </button>
+        )}
+      </div>
+
+      {/* Favorites count */}
+      {favoritesCount > 0 && (
+        <div className="flex items-center gap-1.5 shrink-0 text-sm font-medium text-amber-600 bg-amber-50 px-3 py-1.5 rounded-lg border border-amber-200">
+          <span>⭐</span>
+          <span>{favoritesCount} favori{favoritesCount > 1 ? 's' : ''}</span>
+        </div>
+      )}
     </header>
   );
 }
